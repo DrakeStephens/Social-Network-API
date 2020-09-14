@@ -4,7 +4,34 @@ const {
 } = require('../models');
 
 const thoughtController = {
-    add({ params, body }, res) {
+  getAllThoughts(req, res) {
+      Thought.find({})
+          .populate({
+              path: 'comments',
+              select: '-__v'
+          })
+          .select('-__v')
+          .sort({
+              _id: -1
+          })
+          .then(dbUserData => res.json(dbUserData))
+          .catch(err => {
+              console.log(err);
+              res.status(500).json(err);
+          });
+  },
+    
+  getThoughtById({ params }, res) {
+    Thought.findOne({ _id: params.thoughtId })
+      .select('-__v')
+      .then(dbUserData => res.json(dbUserData))
+      .catch(err => {
+        console.log(err);
+        res.sendStatus(400);
+      });
+  },
+
+  addThought({ params, body }, res) {
         console.log(body);
         Thought.create(body)
           .then(({ _id }) => {
@@ -64,7 +91,7 @@ const thoughtController = {
       removeReact({ params }, res) {
         Thought.findOneAndUpdate(
           { _id: params.thoughtId },
-          { $pull: { reactions: { reactId: params.reactId } } },
+          { $pull: { reactions: { reactionId: params.reactionId } } },
           { new: true }
         )
           .then(dbUserData => res.json(dbUserData))
